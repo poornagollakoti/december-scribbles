@@ -1,0 +1,72 @@
+# Production stack for one AWS EC2 host (see docs/DEPLOY-AWS.md).
+#   Caddy (HTTPS, ports 80/443) → web (Next.js) → api (NestJS, private) → Amazon RDS PostgreSQL
+#   Media: Amazon S3 + CloudFront. Email: Amazon SES (SMTP).
+#
+# Run from this folder:
+#   docker compose --env-file .env.production -f docker-compose.prod.yml up -d --build
+# .env.production lives only on the server (never commit it). Template: env.production.example
+
+name: december-scribbles
+
+services:
+  # Release step: apply database migrations, then exit. The API starts only after it succeeds.
+  migrate:
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+    command: [npx, prisma, migrate, deploy]
+    env_file: .env.production
+    restart: 'no'
+
+  api:
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+    env_file: .env.production
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    # Not published: only the website reaches it, over the private Docker network.
+    expose: ['4000']
+
+  web:
+    build:
+      context: ../..
+      dockerfile: apps/web/Dockerfile
+      args:
+        API_INTERNAL_URL: http://api:4000
+        SITE_URL: https://${DOMAIN}
+    environment:
+      API_INTERNAL_URL: http://api:4000
+      SITE_URL: https://${DOMAIN}
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    expose: ['3000']
+
+  # HTTPS with automatic Let's Encrypt certificates.
+  caddy:
+    image: caddy:2.10.0-alpine
+    environment:
+      DOMAIN: ${DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    depends_on:
+      - web
+    restart: unless-stopped
+
+volumes:
+  caddy-data:
+  caddy-config:

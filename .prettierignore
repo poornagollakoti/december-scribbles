@@ -1,0 +1,11 @@
+node_modules
+dist
+.next
+coverage
+package-lock.json
+playwright-report
+test-results
+brand-assets
+apps/api/prisma/migrations
+**/*.prisma
+.github

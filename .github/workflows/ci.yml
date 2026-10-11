@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Lint, type-check, unit tests, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run prisma:generate -w @ds/api
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+        env:
+          API_INTERNAL_URL: http://localhost:4000
+          SITE_URL: https://example.com
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=critical
+
+  integration:
+    name: API integration + browser end-to-end tests
+    runs-on: ubuntu-latest
+    needs: quality
+    services:
+      postgres:
+        image: postgres:17.11-alpine
+        env:
+          POSTGRES_USER: ds
+          POSTGRES_PASSWORD: ds_local_password
+          POSTGRES_DB: december_scribbles_test
+        ports: ['5433:5432']
+        options: >-
+          --health-cmd "pg_isready -U ds -d december_scribbles_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      s3:
+        image: adobe/s3mock:5.2.3
+        env:
+          COM_ADOBE_TESTING_S3MOCK_STORE_INITIAL_BUCKETS: ds-media
+        ports: ['9090:9090']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build -w @ds/api
+      - name: API integration tests
+        run: npm run test:e2e -w @ds/api
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+        working-directory: apps/web
+      - name: Browser end-to-end tests
+        run: npm run test:e2e -w @ds/web
+        env:
+          CI: 'true'
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report
+          retention-days: 7

@@ -1,0 +1,1230 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "operationId": "HealthController_live_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Liveness: the process is up",
+        "tags": ["health"]
+      }
+    },
+    "/api/v1/health/ready": {
+      "get": {
+        "operationId": "HealthController_ready_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Readiness: dependencies (database) are reachable; 503 otherwise",
+        "tags": ["health"]
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "operationId": "AuthController_login_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Sign in; sets an httpOnly session cookie",
+        "tags": ["auth"]
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "operationId": "AuthController_logout_v1",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["auth"]
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "operationId": "AuthController_me_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "summary": "The currently signed-in administrator",
+        "tags": ["auth"]
+      }
+    },
+    "/api/v1/admin/media": {
+      "get": {
+        "operationId": "AdminMediaController_list_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 50,
+              "default": 12,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["admin: media"]
+      },
+      "post": {
+        "operationId": "AdminMediaController_upload_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "JPEG, PNG, WebP or GIF, max 10 MB"
+                  },
+                  "altText": {
+                    "type": "string",
+                    "maxLength": 300
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["admin: media"]
+      }
+    },
+    "/api/v1/admin/media/{id}": {
+      "patch": {
+        "operationId": "AdminMediaController_update_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMediaDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["admin: media"]
+      },
+      "delete": {
+        "operationId": "AdminMediaController_remove_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["admin: media"]
+      }
+    },
+    "/api/v1/content": {
+      "get": {
+        "operationId": "ContentController_list_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 50,
+              "default": 12,
+              "type": "number"
+            }
+          },
+          {
+            "name": "kind",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["POEM", "QUOTE", "PROSE", "BOOK_NOTE"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Published writing, newest first",
+        "tags": ["content"]
+      }
+    },
+    "/api/v1/content/meta/kinds": {
+      "get": {
+        "operationId": "ContentController_kinds_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Number of published pieces per writing type",
+        "tags": ["content"]
+      }
+    },
+    "/api/v1/content/{slug}": {
+      "get": {
+        "operationId": "ContentController_get_v1",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "No published writing with this slug"
+          }
+        },
+        "tags": ["content"]
+      }
+    },
+    "/api/v1/admin/content": {
+      "get": {
+        "operationId": "AdminContentController_list_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 50,
+              "default": 12,
+              "type": "number"
+            }
+          },
+          {
+            "name": "kind",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["POEM", "QUOTE", "PROSE", "BOOK_NOTE"]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["DRAFT", "PUBLISHED", "ARCHIVED"]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["admin: content"]
+      },
+      "post": {
+        "operationId": "AdminContentController_create_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateContentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["admin: content"]
+      }
+    },
+    "/api/v1/admin/content/{id}": {
+      "get": {
+        "operationId": "AdminContentController_get_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["admin: content"]
+      },
+      "patch": {
+        "operationId": "AdminContentController_update_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateContentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["admin: content"]
+      },
+      "delete": {
+        "operationId": "AdminContentController_remove_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["admin: content"]
+      }
+    },
+    "/api/v1/gallery": {
+      "get": {
+        "operationId": "GalleryController_list_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 50,
+              "default": 24,
+              "type": "number"
+            }
+          },
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 60,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Published artwork in display order, with the available categories",
+        "tags": ["gallery"]
+      }
+    },
+    "/api/v1/gallery/{slug}": {
+      "get": {
+        "operationId": "GalleryController_get_v1",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "No published artwork with this slug"
+          }
+        },
+        "tags": ["gallery"]
+      }
+    },
+    "/api/v1/admin/gallery": {
+      "get": {
+        "operationId": "AdminGalleryController_list_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 50,
+              "default": 12,
+              "type": "number"
+            }
+          },
+          {
+            "name": "visibility",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["published", "hidden"]
+            }
+          },
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 60,
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "order",
+              "type": "string",
+              "enum": ["order", "updated"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["admin: gallery"]
+      },
+      "post": {
+        "operationId": "AdminGalleryController_create_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGalleryItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["admin: gallery"]
+      }
+    },
+    "/api/v1/admin/gallery/{id}": {
+      "get": {
+        "operationId": "AdminGalleryController_get_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["admin: gallery"]
+      },
+      "patch": {
+        "operationId": "AdminGalleryController_update_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGalleryItemDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["admin: gallery"]
+      },
+      "delete": {
+        "operationId": "AdminGalleryController_remove_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["admin: gallery"]
+      }
+    },
+    "/api/v1/enquiries": {
+      "post": {
+        "operationId": "EnquiriesController_submit_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEnquiryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Enquiry received"
+          },
+          "429": {
+            "description": "More than 5 enquiries in 10 minutes from one IP"
+          }
+        },
+        "summary": "Send a message to December Scribbles",
+        "tags": ["enquiries"]
+      }
+    },
+    "/api/v1/admin/enquiries": {
+      "get": {
+        "operationId": "AdminEnquiriesController_list_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 50,
+              "default": 12,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["NEW", "READ", "ARCHIVED"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["admin: enquiries"]
+      }
+    },
+    "/api/v1/admin/enquiries/{id}": {
+      "get": {
+        "operationId": "AdminEnquiriesController_get_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["admin: enquiries"]
+      },
+      "patch": {
+        "operationId": "AdminEnquiriesController_updateStatus_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnquiryStatusUpdateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["admin: enquiries"]
+      },
+      "delete": {
+        "operationId": "AdminEnquiriesController_remove_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["admin: enquiries"]
+      }
+    },
+    "/api/v1/site-profile": {
+      "get": {
+        "operationId": "SiteProfileController_get_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Brand name, tagline, about text and contact links",
+        "tags": ["site profile"]
+      }
+    },
+    "/api/v1/admin/site-profile": {
+      "put": {
+        "operationId": "SiteProfileController_update_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSiteProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["site profile", "admin: site profile"]
+      }
+    },
+    "/api/v1/admin/stats": {
+      "get": {
+        "operationId": "DashboardController_stats_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "cookie": []
+          }
+        ],
+        "tags": ["admin: dashboard"]
+      }
+    }
+  },
+  "info": {
+    "title": "December Scribbles API",
+    "description": "Public content, gallery and enquiry endpoints, plus session-authenticated administration. All errors use the `ApiError` shape: { statusCode, error, message, details?, requestId, path, timestamp }.",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "cookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "ds_session"
+      }
+    },
+    "schemas": {
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "admin@example.com"
+          },
+          "password": {
+            "type": "string",
+            "format": "password"
+          }
+        },
+        "required": ["email", "password"]
+      },
+      "UpdateMediaDto": {
+        "type": "object",
+        "properties": {
+          "altText": {
+            "type": "string",
+            "maxLength": 300
+          }
+        },
+        "required": ["altText"]
+      },
+      "CreateContentDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "slug": {
+            "type": "string",
+            "maxLength": 120,
+            "description": "Generated from the title if omitted"
+          },
+          "excerpt": {
+            "type": "object",
+            "maxLength": 300,
+            "nullable": true
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 20000,
+            "description": "Plain text; line breaks are preserved"
+          },
+          "kind": {
+            "type": "string",
+            "enum": ["POEM", "QUOTE", "PROSE", "BOOK_NOTE"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["DRAFT", "PUBLISHED", "ARCHIVED"]
+          },
+          "coverImageId": {
+            "type": "object",
+            "format": "uuid",
+            "nullable": true
+          }
+        },
+        "required": ["title", "body", "kind", "status"]
+      },
+      "UpdateContentDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "slug": {
+            "type": "string",
+            "maxLength": 120,
+            "description": "Generated from the title if omitted"
+          },
+          "excerpt": {
+            "type": "object",
+            "maxLength": 300,
+            "nullable": true
+          },
+          "body": {
+            "type": "string",
+            "maxLength": 20000,
+            "description": "Plain text; line breaks are preserved"
+          },
+          "kind": {
+            "type": "string",
+            "enum": ["POEM", "QUOTE", "PROSE", "BOOK_NOTE"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["DRAFT", "PUBLISHED", "ARCHIVED"]
+          },
+          "coverImageId": {
+            "type": "object",
+            "format": "uuid",
+            "nullable": true
+          }
+        }
+      },
+      "CreateGalleryItemDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "slug": {
+            "type": "string",
+            "maxLength": 120,
+            "description": "Generated from the title if omitted"
+          },
+          "description": {
+            "type": "object",
+            "maxLength": 2000,
+            "nullable": true
+          },
+          "category": {
+            "type": "object",
+            "maxLength": 60,
+            "nullable": true
+          },
+          "imageId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "altText": {
+            "type": "string",
+            "maxLength": 300,
+            "description": "Describes the image for screen readers"
+          },
+          "displayOrder": {
+            "type": "number",
+            "default": 0
+          },
+          "isPublished": {
+            "type": "boolean",
+            "default": false
+          },
+          "instagramUrl": {
+            "type": "object",
+            "nullable": true,
+            "example": "https://www.instagram.com/p/AbC123/",
+            "description": "Link to the original Instagram post or reel"
+          }
+        },
+        "required": ["title", "imageId", "altText"]
+      },
+      "UpdateGalleryItemDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "slug": {
+            "type": "string",
+            "maxLength": 120,
+            "description": "Generated from the title if omitted"
+          },
+          "description": {
+            "type": "object",
+            "maxLength": 2000,
+            "nullable": true
+          },
+          "category": {
+            "type": "object",
+            "maxLength": 60,
+            "nullable": true
+          },
+          "imageId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "altText": {
+            "type": "string",
+            "maxLength": 300,
+            "description": "Describes the image for screen readers"
+          },
+          "displayOrder": {
+            "type": "number",
+            "default": 0
+          },
+          "isPublished": {
+            "type": "boolean",
+            "default": false
+          },
+          "instagramUrl": {
+            "type": "object",
+            "nullable": true,
+            "example": "https://www.instagram.com/p/AbC123/",
+            "description": "Link to the original Instagram post or reel"
+          }
+        }
+      },
+      "CreateEnquiryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 254
+          },
+          "type": {
+            "type": "string",
+            "enum": ["GENERAL", "COLLABORATION", "COMMISSION", "FEEDBACK"]
+          },
+          "subject": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "message": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 5000
+          },
+          "website": {
+            "type": "string",
+            "description": "Honeypot field. Leave empty."
+          }
+        },
+        "required": ["name", "email", "type", "message"]
+      },
+      "EnquiryStatusUpdateDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["NEW", "READ", "ARCHIVED"]
+          }
+        },
+        "required": ["status"]
+      },
+      "UpdateSiteProfileDto": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "tagline": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "aboutBody": {
+            "type": "string",
+            "maxLength": 20000,
+            "description": "Plain text; paragraphs separated by blank lines"
+          },
+          "contactEmail": {
+            "type": "object",
+            "nullable": true
+          },
+          "instagramUrl": {
+            "type": "object",
+            "nullable": true
+          },
+          "aboutImageId": {
+            "type": "object",
+            "format": "uuid",
+            "nullable": true,
+            "description": "Image shown in the About section"
+          }
+        },
+        "required": ["displayName", "tagline", "aboutBody"]
+      }
+    }
+  }
+}
