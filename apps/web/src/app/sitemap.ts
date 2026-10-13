@@ -50,7 +50,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${SITE_URL}/writing/${w.slug}`,
       lastModified: w.publishedAt ?? undefined,
       priority: 0.6,
+      ...(w.coverImage ? { images: [w.coverImage.url] } : {}),
     })),
-    ...gallery.map((g) => ({ url: `${SITE_URL}/gallery/${g.slug}`, priority: 0.5 })),
+    ...gallery.map((g) => ({
+      url: `${SITE_URL}/gallery/${g.slug}`,
+      priority: 0.5,
+      images: [g.image.url],
+    })),
   ];
 }

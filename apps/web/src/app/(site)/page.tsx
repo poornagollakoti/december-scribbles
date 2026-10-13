@@ -1,5 +1,6 @@
 import { CONTENT_KIND_LABELS, type ContentKindCount, type SiteProfile } from '@ds/contracts';
 import { ArrowUpRight, BookOpen, Images } from 'lucide-react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArtworkFeed, WritingFeed } from '@/components/home-feeds';
 import { HomeHero } from '@/components/home-hero';
@@ -10,7 +11,14 @@ import { Arrow, EmptyState, MoreLink, SectionHeading } from '@/components/ui';
 import { getKindCounts, listGallery, listWriting } from '@/lib/api/public';
 import { COPY } from '@/lib/copy';
 import { getProfileOrFallback } from '@/lib/profile';
+import { brandLd, jsonLdHtml, websiteLd } from '@/lib/seo';
 import { paragraphs } from '@/lib/site';
+
+export const metadata: Metadata = {
+  // The brand name first, then what visitors will find: what people search for.
+  title: { absolute: 'December Scribbles · Poems, Quotes & Illustrated Posters' },
+  alternates: { canonical: '/' },
+};
 
 /** How many recent items each homepage feed shows. */
 const FEED_SIZE = 9;
@@ -58,6 +66,10 @@ export default async function HomePage() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={jsonLdHtml(brandLd(profile), websiteLd(profile))}
+      />
       <HomeHero profile={profile} />
       <IntroSection profile={profile} kinds={kinds} />
 

@@ -8,18 +8,35 @@ import { getKindCounts, listWriting } from '@/lib/api/public';
 import { COPY } from '@/lib/copy';
 import { parsePage } from '@/lib/site';
 
-export const metadata: Metadata = {
-  title: 'Writing',
-  description: "Poetry, quotes, prose and Bookworm's Closet reading notes from December Scribbles.",
-  alternates: { canonical: '/writing' },
-};
-
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 const PAGE_SIZE = 15;
 
 function parseKind(value: string | string[] | undefined): ContentKind | undefined {
   const v = Array.isArray(value) ? value[0] : value;
   return CONTENT_KINDS.find((k) => k === v);
+}
+
+/** Each filtered or paginated view is its own page for search engines, with a matching title. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}): Promise<Metadata> {
+  const params = await searchParams;
+  const kind = parseKind(params.kind);
+  const page = parsePage(params.page);
+  const qs = new URLSearchParams();
+  if (kind) qs.set('kind', kind);
+  if (page > 1) qs.set('page', String(page));
+  const query = qs.toString();
+  const label = kind ? CONTENT_KIND_LABELS[kind] : 'Writing';
+  return {
+    title: page > 1 ? `${label} (page ${page})` : label,
+    description: kind
+      ? `${CONTENT_KIND_LABELS[kind]} by December Scribbles.`
+      : "Poetry, quotes, prose and Bookworm's Closet reading notes from December Scribbles.",
+    alternates: { canonical: query ? `/writing?${query}` : '/writing' },
+  };
 }
 
 export default async function WritingPage({ searchParams }: { searchParams: SearchParams }) {

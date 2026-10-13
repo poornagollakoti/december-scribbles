@@ -6,7 +6,9 @@ import { Icon } from '@/components/icon';
 import { ResponsiveImage } from '@/components/responsive-image';
 import { ShareActions } from '@/components/share-actions';
 import { getArtwork } from '@/lib/api/public';
-import { paragraphs } from '@/lib/site';
+import { getProfileOrFallback } from '@/lib/profile';
+import { breadcrumbLd, jsonLdHtml, ORG_ID } from '@/lib/seo';
+import { paragraphs, SITE_URL } from '@/lib/site';
 
 type Params = Promise<{ slug: string }>;
 
@@ -22,18 +24,58 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
     openGraph: {
       title: item.title,
       description,
-      images: [{ url: item.image.url, alt: item.image.alt }],
+      images: [
+        {
+          url: item.image.url,
+          width: item.image.width,
+          height: item.image.height,
+          alt: item.image.alt,
+        },
+      ],
     },
   };
 }
 
 /** A viewing room: the artwork at full proportion on the brand's forest green. */
 export default async function ArtworkPage({ params }: { params: Params }) {
-  const item = await getArtwork((await params).slug);
+  const [item, profile] = await Promise.all([
+    getArtwork((await params).slug),
+    getProfileOrFallback(),
+  ]);
   if (!item) notFound();
+
+  const url = `${SITE_URL}/gallery/${item.slug}`;
+  const jsonLd = jsonLdHtml(
+    {
+      '@type': 'VisualArtwork',
+      '@id': `${url}#work`,
+      name: item.title,
+      description: item.description ?? undefined,
+      artform: item.category ?? 'Illustration',
+      creator: { '@id': ORG_ID, '@type': 'Organization', name: profile.displayName },
+      url,
+      image: {
+        '@type': 'ImageObject',
+        contentUrl: item.image.url,
+        width: item.image.width,
+        height: item.image.height,
+        caption: item.image.alt || undefined,
+        creator: { '@id': ORG_ID },
+        creditText: profile.displayName,
+        copyrightNotice: `© ${profile.displayName}`,
+      },
+      ...(item.instagramUrl ? { sameAs: [item.instagramUrl] } : {}),
+    },
+    breadcrumbLd([
+      { name: 'Home', path: '/' },
+      { name: 'Gallery', path: '/gallery' },
+      { name: item.title, path: `/gallery/${item.slug}` },
+    ]),
+  );
 
   return (
     <div className="container-page pt-2 pb-[var(--spacing-section)] sm:pt-4">
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd} />
       <div className="overflow-hidden rounded-[var(--radius-xl)] bg-forest text-on-dark">
         <div className="grid gap-10 p-5 sm:p-10 lg:grid-cols-12 lg:gap-12 lg:p-14">
           <figure className="flex items-center justify-center lg:col-span-7 motion-safe:animate-rise">

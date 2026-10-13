@@ -4,7 +4,7 @@ import { expectAccessible, FIXTURE_POEM } from './fixtures';
 test.describe('Visitor journeys', () => {
   test('home page presents the brand and leads to the writing @mobile', async ({ page }) => {
     await page.goto('/');
-    await expect(page).toHaveTitle('December Scribbles');
+    await expect(page).toHaveTitle('December Scribbles · Poems, Quotes & Illustrated Posters');
     await expect(page.getByRole('link', { name: 'December Scribbles, home' })).toBeVisible();
     await expect(
       page.getByRole('heading', { level: 1, name: /Life is nothing without\s*inspirations/ }),

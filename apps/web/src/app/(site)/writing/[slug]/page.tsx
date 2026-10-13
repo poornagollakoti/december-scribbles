@@ -11,6 +11,7 @@ import { WritingBody } from '@/components/writing-body';
 import { getWriting, listWriting } from '@/lib/api/public';
 import { COPY } from '@/lib/copy';
 import { getProfileOrFallback } from '@/lib/profile';
+import { breadcrumbLd, jsonLdHtml, ORG_ID } from '@/lib/seo';
 import { formatDate, SITE_URL } from '@/lib/site';
 
 type Params = Promise<{ slug: string }>;
@@ -29,7 +30,14 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
       description,
       publishedTime: item.publishedAt ?? undefined,
       images: item.coverImage
-        ? [{ url: item.coverImage.url, alt: item.coverImage.alt }]
+        ? [
+            {
+              url: item.coverImage.url,
+              width: item.coverImage.width,
+              height: item.coverImage.height,
+              alt: item.coverImage.alt,
+            },
+          ]
         : undefined,
     },
   };
@@ -50,16 +58,38 @@ export default async function WritingDetailPage({ params }: { params: Params }) 
   const date = formatDate(item.publishedAt);
   const withCover = Boolean(item.coverImage);
 
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'CreativeWork',
-    headline: item.title,
-    genre: CONTENT_KIND_LABELS[item.kind],
-    datePublished: item.publishedAt ?? undefined,
-    author: { '@type': 'Person', name: profile.displayName },
-    url: `${SITE_URL}/writing/${item.slug}`,
-    image: item.coverImage?.url,
-  };
+  const url = `${SITE_URL}/writing/${item.slug}`;
+  const jsonLd = jsonLdHtml(
+    {
+      '@type': item.kind === 'PROSE' || item.kind === 'BOOK_NOTE' ? 'Article' : 'CreativeWork',
+      '@id': `${url}#work`,
+      headline: item.title,
+      name: item.title,
+      description: item.excerpt ?? undefined,
+      genre: CONTENT_KIND_LABELS[item.kind],
+      inLanguage: 'en',
+      datePublished: item.publishedAt ?? undefined,
+      author: { '@id': ORG_ID, '@type': 'Organization', name: profile.displayName },
+      publisher: { '@id': ORG_ID },
+      mainEntityOfPage: url,
+      url,
+      image: item.coverImage
+        ? {
+            '@type': 'ImageObject',
+            url: item.coverImage.url,
+            width: item.coverImage.width,
+            height: item.coverImage.height,
+            caption: item.coverImage.alt || undefined,
+          }
+        : undefined,
+      wordCount: item.body.trim().split(/\s+/).length,
+    },
+    breadcrumbLd([
+      { name: 'Home', path: '/' },
+      { name: 'Writing', path: '/writing' },
+      { name: item.title, path: `/writing/${item.slug}` },
+    ]),
+  );
 
   const meta = (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-meta text-ink-2">
@@ -80,11 +110,7 @@ export default async function WritingDetailPage({ params }: { params: Params }) 
 
   return (
     <article>
-      <script
-        type="application/ld+json"
-        // JSON.stringify output with "<" escaped cannot break out of the script element.
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd} />
       <Container className="pt-6 sm:pt-10">
         <Link href="/writing" className="btn btn-quiet btn-sm -ml-3">
           <Icon icon={ArrowLeft} size="sm" />

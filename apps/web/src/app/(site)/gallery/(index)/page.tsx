@@ -6,13 +6,31 @@ import { listGallery } from '@/lib/api/public';
 import { COPY } from '@/lib/copy';
 import { parsePage } from '@/lib/site';
 
-export const metadata: Metadata = {
-  title: 'Gallery',
-  description: 'Illustrated posters, doodles and artwork from December Scribbles.',
-  alternates: { canonical: '/gallery' },
-};
-
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+/** Each category or page of the gallery is its own page for search engines. */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}): Promise<Metadata> {
+  const params = await searchParams;
+  const rawCategory = Array.isArray(params.category) ? params.category[0] : params.category;
+  const category = rawCategory?.slice(0, 60) || undefined;
+  const page = parsePage(params.page);
+  const qs = new URLSearchParams();
+  if (category) qs.set('category', category);
+  if (page > 1) qs.set('page', String(page));
+  const query = qs.toString();
+  const label = category ?? 'Gallery';
+  return {
+    title: page > 1 ? `${label} (page ${page})` : label,
+    description: category
+      ? `${category}: illustrated posters and artwork by December Scribbles.`
+      : 'Illustrated posters, doodles and artwork from December Scribbles.',
+    alternates: { canonical: query ? `/gallery?${query}` : '/gallery' },
+  };
+}
 
 export default async function GalleryPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
